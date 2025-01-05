@@ -1,4 +1,3 @@
-#from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 import sklearn.metrics as metrics
 import pandas as pd
 
@@ -44,8 +43,9 @@ def evaluate_model(model, x_test, y_test, path):
 
     #confusion matrix
     confusion_matrix = metrics.confusion_matrix(y_test, y_pred)
-    cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=confusion_matrix )
-    cm_display.plot()
+    cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=confusion_matrix)
+    #cm_display.plot(cmap = plt.cm.magma)
+    cm_display.plot(cmap=plt.cm.Blues)
     plt.savefig(path + "ConfusionMatrix.png")
     plt.show()
 

@@ -47,7 +47,7 @@ def preprocess_data(df):
     return df
 '''
 
-def remove_value_null(df, verbose):
+def remove_value_null(df, verbose, path):
     if verbose:
         print('Valori mancanti in "statement":', df['statement'].isnull().sum())
         missing_by_status = df.groupby('status')['statement'].apply(lambda x: x.isnull().sum())
@@ -55,24 +55,26 @@ def remove_value_null(df, verbose):
 
         # Grafico
         plt.figure(figsize=(8, 5))
-        missing_by_status.plot(kind='bar', color='orange')
+        missing_by_status.plot(kind='bar', color='blue')
         plt.title("Valori Mancanti nella colonna 'statement' per Status")
         plt.xlabel("Status")
         plt.ylabel("Numero di Valori Mancanti")
+        plt.xticks(rotation=45, ha='right')
         plt.grid(axis='y', linestyle='--', alpha=0.7)
+        plt.savefig(path + "Valori nulli.png")
         plt.show()
 
     # Rimozione valori nulli
     df_cleaned = df.dropna(subset=['statement'])
     return df_cleaned
 
-def preprocessing(df, verbose, n_samples, stopwords_flag):
+def preprocessing(df, verbose, n_samples, stopwords_flag, path):
     if verbose:
         print("Info Dataset:")
-        print(df.info())
+        information(df, path)
 
     print("Cleaning...")
-    df = remove_value_null(df,verbose)
+    df = remove_value_null(df,verbose, path)
     if stopwords_flag:
         # Funzione "wrapper" che prende il testo e il flag come argomenti
         def clean_text_with_flag(text):
@@ -88,16 +90,19 @@ def preprocessing(df, verbose, n_samples, stopwords_flag):
 
     return  df
 
-def information(df):
+def information(df, path):
     print("Dataset dimensions:", df.shape)
     frequencies = df['status'].value_counts()
     print("Class frequencies:", frequencies)
 
     # Plot
-    plt.figure(figsize=(8, 5))
-    frequencies.plot(kind='bar', color='orange')
-    plt.title("Class Frequencies")
-    plt.xlabel("Class")
-    plt.ylabel("Number of Occurrences")
+    plt.figure(figsize=(8, 8))
+    frequencies.plot(kind='bar', color='blue')
+    plt.title("Frequenza delle emozioni divisa per status")
+    plt.xlabel("Status")
+    plt.ylabel("Numero di Frequenza divisa")
+    plt.xticks(rotation=45, ha='right')
     plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.tight_layout()
+    plt.savefig(path + "Frequenza delle emozioni divisa per classi.png")
     plt.show()

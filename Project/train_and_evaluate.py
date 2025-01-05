@@ -69,7 +69,7 @@ def main(opt):
     df = pd.read_csv(opt.data)
 
     ## Preprocess Dataset
-    df_preprocessed = preprocessing(df, opt.verbose, opt.n_samples, opt.stopwords_flag)
+    df_preprocessed = preprocessing(df, opt.verbose, opt.n_samples, opt.stopwords_flag, opt.save_path)
 
     x, y = df_preprocessed[['cleanText']], df_preprocessed['status']
     # da verificare
