@@ -1,7 +1,5 @@
-import joblib
-
-from Project.utils.data_preprocessing import clean_text
-from Project.utils.model_utils import load_model
+from utils.data_preprocessing import clean_text
+from utils.model_utils import load_model
 
 input_path = 'models/model_new_data/'
 # Carica il modello di machine learning

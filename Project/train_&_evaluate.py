@@ -5,9 +5,10 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.preprocessing import LabelEncoder
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
+import os
 
-from Project.predict import evaluate_model
-from Project.utils.model_utils import save_model
+from utils.metrics import evaluate_model
+from utils.model_utils import save_model
 from utils.data_preprocessing import preprocessing
 
 def train(opt):
@@ -15,7 +16,7 @@ def train(opt):
     df = pd.read_csv(opt.data)
 
     ## Preprocess Dataset
-    df_preprocessed = preprocessing(df, verbose =opt.verbose, n_sample = 4000)
+    df_preprocessed = preprocessing(df, opt.verbose, opt.n_samples)
 
     x, y = df_preprocessed[['cleanText']], df_preprocessed['status']
     #da verificare
@@ -37,8 +38,7 @@ def train(opt):
     y_encoded = emotion_encoder.fit_transform(y)
 
     ## Set training parameters
-    x_train, x_test, y_train, y_test = train_test_split(x_encoded, y_encoded, test_size=0.3, random_state=42)
-
+    x_train, x_test, y_train, y_test = train_test_split(x_encoded, y_encoded, test_size=0.2, random_state=42)
     print("Dataset suddiviso in train e test.")
 
     ## Train
@@ -47,20 +47,29 @@ def train(opt):
     print("Modello addestrato con Multinomial Naive Bayes.")
 
     ## Save model and metrics
-    accuracy = evaluate_model(model, x_test, y_test)
+    parent_dir = os.path.dirname(opt.save_path)
+    # Creare la directory genitore
+    os.makedirs(parent_dir, exist_ok=True)
+
+    accuracy, precision, recall, f1 = evaluate_model(model, x_test, y_test, opt.save_path)
+
     print(f"Accuracy: {accuracy}")
+    print(f"Precision: {precision}")
+    print(f"Recall: {recall}")
+    print(f"F1 Score: {f1}")
 
 
-    save_model(model, vectorizer, emotion_encoder, path=opt.save_path)
+
+    save_model(model, vectorizer, emotion_encoder,opt.save_path)
     print(f"Modello, vectorizer ed encoder salvati nella directory '{opt.save_path}'")
 
 def parse_opt():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--data", type=str, default=r"..\Project\data\emotionSentimentAnalysis.csv", help="path to the dataset")
-    parser.add_argument("--save_path", type=str, default=r"prediction/modello_30%/", help="path to save templates")
-    parser.add_argument("--verbose", type=bool, default=False, help="verbose mode")
-    parser.add_argument("--n_samples", type=int, default=4000, help="Number of samples for downsampling")
+    parser.add_argument("--save_path", type=str, default=r"prediction/modello_no_stopword_20%/", help="path to save templates")
+    parser.add_argument("--verbose", action='store_true', help="verbose mode")
+    parser.add_argument("--n_samples", type=int, default=3000, help="Number of samples for downsampling")
 
     return parser.parse_args()
 

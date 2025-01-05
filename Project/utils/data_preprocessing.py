@@ -18,7 +18,12 @@ def normalizing(df, n_samples):
     print(f"Least frequent element: {least_frequent}")
 
     # Sottocampionamento
-    balanced_dataset = df.groupby('status').apply(lambda x: x.sample(n_samples)).reset_index(drop=True)
+    #balanced_dataset = df.groupby('status').apply(lambda x: x.sample(n_samples)).reset_index(drop=True)
+    #Sottocampionamento controllato
+    balanced_dataset = df.groupby('status').apply(
+        lambda x: x.sample(n_samples) if len(x) >= n_samples else x
+    ).reset_index(drop=True)
+
 
     print("Balanced distribution:")
     print(balanced_dataset['status'].value_counts())
@@ -27,18 +32,20 @@ def normalizing(df, n_samples):
 
 def clean_text(statement):
     statement = statement.lower()
-    stop_words = set(stopwords.words('english'))
-    statement = ' '.join([word for word in statement.split() if word not in stop_words])
+    #stop_words = set(stopwords.words('english'))
+    #statement = ' '.join([word for word in statement.split() if word not in stop_words])
     statement = re.sub(r'\s+', ' ', statement).strip()  # Gestisce spazi multipli
     statement = ' '.join(dict.fromkeys(statement.split()))  # Rimuove duplicati
     statement = re.sub(r'[^a-zA-Z0-9\s]', '', statement) #Rimuovere caratteri speciali
 
     return statement
 
+'''
 def preprocess_data(df):
     # Create the 'cleanText' colun
     df['cleanText'] = df['statement'].apply(clean_text)
     return df
+'''
 
 def remove_value_null(df, verbose):
     if verbose:
@@ -56,8 +63,7 @@ def remove_value_null(df, verbose):
         plt.show()
 
     # Rimozione valori nulli
-    df_cleaned = df.dropna(subset=['statement'])  # Rimuove righe con 'statement' NaN
-
+    df_cleaned = df.dropna(subset=['statement'])
     return df_cleaned
 
 def preprocessing(df, verbose, n_samples):
@@ -65,10 +71,10 @@ def preprocessing(df, verbose, n_samples):
         print("Info Dataset:")
         print(df.info())
 
-    print("Remove null values..")
-    df = remove_value_null(df,verbose)
     print("Cleaning...")
-    df = preprocess_data(df)
+    df = remove_value_null(df,verbose)
+    df['cleanText'] = df['statement'].apply(clean_text)
+
     print("Normalizing...")
     df = normalizing(df, n_samples)
 

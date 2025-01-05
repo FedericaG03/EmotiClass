@@ -1,4 +1,5 @@
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+#from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+import sklearn.metrics as metrics
 import pandas as pd
 
 import matplotlib.pyplot as plt
@@ -7,12 +8,14 @@ import matplotlib.pyplot as plt
 def evaluate_model(model, x_test, y_test, path):
     """Evaluate the model and print the metrics."""
     y_pred = model.predict(x_test)
-    accuracy = accuracy_score(y_test, y_pred)
-    '''average='micro':Viene calcolata la metrica complessiva a livello globale considerando ogni previsione e ogni vero esempio, quindi sommando i veri positivi, i falsi positivi e i falsi negativi per tutti gli esempi. È una media "globale", che tratta tutte le classi come se fossero equivalenti.
-    Questo è utile quando hai un numero di esempi significativamente diverso per ciascuna classe (es. un dataset sbilanciato) e vuoi una misura di performance che tenga conto di tutte le previsi'''
-    precision = precision_score(y_test, y_pred, average='micro')
-    recall = recall_score(y_test, y_pred, average='micro')
-    f1 = f1_score(y_test, y_pred, average='micro')
+
+    print("Stampa predizione , stampa label", y_pred, y_test)
+    accuracy = metrics.accuracy_score(y_test, y_pred)
+    '''average='macro':
+     Calculate metrics for each label, and find their unweighted mean. This does not take label imbalance into account.'''
+    precision = metrics.precision_score(y_test, y_pred, average='macro')
+    recall = metrics.recall_score(y_test, y_pred, average='macro')
+    f1 = metrics.f1_score(y_test, y_pred, average='macro')
 
     file = path + "metriche.txt"
     #salvare le metriche su file
@@ -42,6 +45,14 @@ def evaluate_model(model, x_test, y_test, path):
     plt.bar(['Previsioni Corrette', 'Previsioni Errate'], counts, color=['green', 'red'])
     plt.title("Distribuzione Previsioni")
     plt.ylabel("Numero di Previsioni")
+    plt.show()
+
+    #confusion matrix
+    confusion_matrix = metrics.confusion_matrix(y_test, y_pred)
+
+    cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=confusion_matrix )
+
+    cm_display.plot()
     plt.show()
 
     return accuracy, precision, recall, f1
