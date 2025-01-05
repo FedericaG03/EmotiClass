@@ -1,7 +1,13 @@
 import joblib
+import os
 
 def save_model(model, vectorizer, emotion_encoder, path):
     """Save the model, vectorizer, and encoder to a specified path."""
+    path = f'{path}/model/'
+
+    parent_dir = os.path.dirname(path)
+    # Creare la directory genitore
+    os.makedirs(parent_dir, exist_ok=True)
 
     # Salvataggio dei file
     joblib.dump(model, f"{path}naive_bayes_model.pkl")

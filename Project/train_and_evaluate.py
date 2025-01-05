@@ -11,21 +11,8 @@ from utils.metrics import evaluate_model
 from utils.model_utils import save_model
 from utils.data_preprocessing import preprocessing
 
-def train(opt):
-    ## Load Dataset
-    df = pd.read_csv(opt.data)
-
-    ## Preprocess Dataset
-    df_preprocessed = preprocessing(df, opt.verbose, opt.n_samples)
-
-    x, y = df_preprocessed[['cleanText']], df_preprocessed['status']
-    #da verificare
-    print(f"dato da studiare : {x.shape}")
-    print(f"The preprocessed dataset has: {x.shape[0]} sentences")
-    print(f" information {x,y}")
-
+def train(x, y, opt):
     ## Load/initialize model
-
     # Trasforma il testo in numeri con CountVectorizer
     vectorizer = CountVectorizer()
     ''' Vectorizer, vuole una lista di stringhe devi gestirlo
@@ -51,31 +38,49 @@ def train(opt):
     # Creare la directory genitore
     os.makedirs(parent_dir, exist_ok=True)
 
-    accuracy, precision, recall, f1 = evaluate_model(model, x_test, y_test, opt.save_path)
+    save_model(model, vectorizer, emotion_encoder,opt.save_path)
+    print(f"Modello, vectorizer ed encoder salvati nella directory '{opt.save_path}'")
+
+    return model, x_test, y_test
+
+def evaluate(model, x_test, y_test, save_path):
+
+    accuracy, precision, recall, f1 = evaluate_model(model, x_test, y_test, save_path)
 
     print(f"Accuracy: {accuracy}")
     print(f"Precision: {precision}")
     print(f"Recall: {recall}")
     print(f"F1 Score: {f1}")
 
-
-
-    save_model(model, vectorizer, emotion_encoder,opt.save_path)
-    print(f"Modello, vectorizer ed encoder salvati nella directory '{opt.save_path}'")
-
 def parse_opt():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--data", type=str, default=r"..\Project\data\emotionSentimentAnalysis.csv", help="path to the dataset")
-    parser.add_argument("--save_path", type=str, default=r"prediction/modello_no_stopword_20%/", help="path to save templates")
+    parser.add_argument("--save_path", type=str, default=r"experiment_1/", help="path where to save model and results")
     parser.add_argument("--verbose", action='store_true', help="verbose mode")
+    parser.add_argument("--stopwords_flag", action='store_true', help="If use stopwords removal")
     parser.add_argument("--n_samples", type=int, default=3000, help="Number of samples for downsampling")
 
     return parser.parse_args()
 
 def main(opt):
     print(f'The model will be trained on {opt.data}')
-    train(opt)
+    ## Load Dataset
+    df = pd.read_csv(opt.data)
+
+    ## Preprocess Dataset
+    df_preprocessed = preprocessing(df, opt.verbose, opt.n_samples, opt.stopwords_flag)
+
+    x, y = df_preprocessed[['cleanText']], df_preprocessed['status']
+    # da verificare
+    print(f"dato da studiare : {x.shape}")
+    print(f"The preprocessed dataset has: {x.shape[0]} sentences")
+    print(f" information {x, y}")
+
+    #Training
+    model, x_test, y_test = train(x, y, opt)
+    #Evaluatiom
+    evaluate(model, x_test, y_test, opt.save_path)
 
 if __name__ == "__main__":
     opt = parse_opt()

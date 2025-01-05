@@ -1,4 +1,3 @@
-import pandas as pd
 import nltk
 import re
 import matplotlib.pyplot as plt
@@ -30,10 +29,11 @@ def normalizing(df, n_samples):
 
     return balanced_dataset
 
-def clean_text(statement):
+def clean_text(statement, stopwords_flag = False):
     statement = statement.lower()
-    #stop_words = set(stopwords.words('english'))
-    #statement = ' '.join([word for word in statement.split() if word not in stop_words])
+    if stopwords_flag:
+        stop_words = set(stopwords.words('english'))
+        statement = ' '.join([word for word in statement.split() if word not in stop_words])
     statement = re.sub(r'\s+', ' ', statement).strip()  # Gestisce spazi multipli
     statement = ' '.join(dict.fromkeys(statement.split()))  # Rimuove duplicati
     statement = re.sub(r'[^a-zA-Z0-9\s]', '', statement) #Rimuovere caratteri speciali
@@ -66,14 +66,22 @@ def remove_value_null(df, verbose):
     df_cleaned = df.dropna(subset=['statement'])
     return df_cleaned
 
-def preprocessing(df, verbose, n_samples):
+def preprocessing(df, verbose, n_samples, stopwords_flag):
     if verbose:
         print("Info Dataset:")
         print(df.info())
 
     print("Cleaning...")
     df = remove_value_null(df,verbose)
-    df['cleanText'] = df['statement'].apply(clean_text)
+    if stopwords_flag:
+        # Funzione "wrapper" che prende il testo e il flag come argomenti
+        def clean_text_with_flag(text):
+            return clean_text(text, stopwords_flag)  # Passa stopwords_flag come True o False
+
+        # Ora puoi usare clean_text_with_flag con .apply()
+        df['cleanText'] = df['statement'].apply(clean_text_with_flag)
+    else:
+        df['cleanText'] = df['statement'].apply(clean_text)
 
     print("Normalizing...")
     df = normalizing(df, n_samples)
