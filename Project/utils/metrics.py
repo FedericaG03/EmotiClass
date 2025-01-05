@@ -1,11 +1,17 @@
 import sklearn.metrics as metrics
 import pandas as pd
-
 import matplotlib.pyplot as plt
 
-def evaluate_model(model, x_test, y_test, path):
+def compute_metrics(y_pred, y_test, path):
     """Evaluate the model and print the metrics."""
-    y_pred = model.predict(x_test)
+
+    predictions_df = pd.DataFrame({
+        'True_Label': y_test,
+        'Predicted_Label': y_pred
+    })
+
+    #file_path = path + "predictions.csv"
+    #predictions_df.to_csv(file_path, index=False)
 
     accuracy = metrics.accuracy_score(y_test, y_pred)
     '''average='macro':
@@ -21,14 +27,6 @@ def evaluate_model(model, x_test, y_test, path):
         f.write("Precision: {:.4f}\n".format(precision))
         f.write("Recall: {:.4f}\n".format(recall))
         f.write("F1 Score: {:.4f}\n".format(f1))
-
-    predictions_df = pd.DataFrame({
-        'True_Label': y_test,
-        'Predicted_Label': y_pred
-    })
-
-    file_path = path + "predictions.csv"
-    predictions_df.to_csv(file_path, index=False)
 
     # Conta previsioni corrette ed errate
     predictions_df['Correct'] = predictions_df['True_Label'] == predictions_df['Predicted_Label']

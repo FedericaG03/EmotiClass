@@ -7,7 +7,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
 import os
 
-from utils.metrics import evaluate_model
+from utils.metrics import compute_metrics
 from utils.model_utils import save_model
 from utils.data_preprocessing import preprocessing
 
@@ -33,11 +33,7 @@ def train(x, y, opt):
     model.fit(x_train, y_train)
     print("Modello addestrato con Multinomial Naive Bayes.")
 
-    ## Save model and metrics
-    parent_dir = os.path.dirname(opt.save_path)
-    # Creare la directory genitore
-    os.makedirs(parent_dir, exist_ok=True)
-
+    ## Save model
     save_model(model, vectorizer, emotion_encoder,opt.save_path)
     print(f"Modello, vectorizer ed encoder salvati nella directory '{opt.save_path}'")
 
@@ -45,7 +41,9 @@ def train(x, y, opt):
 
 def evaluate(model, x_test, y_test, save_path):
 
-    accuracy, precision, recall, f1 = evaluate_model(model, x_test, y_test, save_path)
+    y_pred = model.predict(x_test)
+
+    accuracy, precision, recall, f1 = compute_metrics(y_pred, y_test, save_path)
 
     print(f"Accuracy: {accuracy}")
     print(f"Precision: {precision}")
@@ -64,6 +62,10 @@ def parse_opt():
     return parser.parse_args()
 
 def main(opt):
+    parent_dir = os.path.dirname(opt.save_path)
+    # Creare la directory genitore
+    os.makedirs(parent_dir, exist_ok=True)
+
     print(f'The model will be trained on {opt.data}')
     ## Load Dataset
     df = pd.read_csv(opt.data)
