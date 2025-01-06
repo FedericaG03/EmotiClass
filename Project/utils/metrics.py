@@ -10,9 +10,6 @@ def compute_metrics(y_pred, y_test, path):
         'Predicted_Label': y_pred
     })
 
-    #file_path = path + "predictions.csv"
-    #predictions_df.to_csv(file_path, index=False)
-
     accuracy = metrics.accuracy_score(y_test, y_pred)
     '''average='macro':
      Calculate metrics for each label, and find their unweighted mean. This does not take label imbalance into account.'''
@@ -27,6 +24,11 @@ def compute_metrics(y_pred, y_test, path):
         f.write("Precision: {:.4f}\n".format(precision))
         f.write("Recall: {:.4f}\n".format(recall))
         f.write("F1 Score: {:.4f}\n".format(f1))
+
+    print(f"Accuracy: {accuracy}")
+    print(f"Precision: {precision}")
+    print(f"Recall: {recall}")
+    print(f"F1 Score: {f1}")
 
     # Conta previsioni corrette ed errate
     predictions_df['Correct'] = predictions_df['True_Label'] == predictions_df['Predicted_Label']

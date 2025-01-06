@@ -23,6 +23,7 @@ def train(x, y, opt):
     # Encoding dell'emozione (se status non è numerico)
     emotion_encoder = LabelEncoder()
     y_encoded = emotion_encoder.fit_transform(y)
+    print("Mapping labels:", dict(zip(emotion_encoder.classes_, range(len(emotion_encoder.classes_)))))
 
     ## Set training parameters
     x_train, x_test, y_train, y_test = train_test_split(x_encoded, y_encoded, test_size=0.2, random_state=42)
@@ -39,16 +40,20 @@ def train(x, y, opt):
 
     return model, x_test, y_test
 
-def evaluate(model, x_test, y_test, save_path):
+def classify(model, x_test, x = None, enc = None, save_path = None):
 
     y_pred = model.predict(x_test)
 
-    accuracy, precision, recall, f1 = compute_metrics(y_pred, y_test, save_path)
+    if save_path:
+        status = enc.inverse_transform([y_pred])
+        predictions_df = pd.DataFrame({
+            'statement': x,
+            'status': status
+        })
+        file_path = save_path + "predictions.csv"
+        predictions_df.to_csv(file_path, index=False)
 
-    print(f"Accuracy: {accuracy}")
-    print(f"Precision: {precision}")
-    print(f"Recall: {recall}")
-    print(f"F1 Score: {f1}")
+    return y_pred
 
 def parse_opt():
     parser = argparse.ArgumentParser()
@@ -74,15 +79,13 @@ def main(opt):
     df_preprocessed = preprocessing(df, opt.verbose, opt.n_samples, opt.stopwords_flag, opt.save_path)
 
     x, y = df_preprocessed[['cleanText']], df_preprocessed['status']
-    # da verificare
-    print(f"dato da studiare : {x.shape}")
-    print(f"The preprocessed dataset has: {x.shape[0]} sentences")
-    print(f" information {x, y}")
 
     #Training
     model, x_test, y_test = train(x, y, opt)
-    #Evaluatiom
-    evaluate(model, x_test, y_test, opt.save_path)
+    #Prediction on test set
+    y_pred = classify(model, x_test)
+    #Model evaluation
+    compute_metrics(y_pred, y_test, opt.save_path)
 
 if __name__ == "__main__":
     opt = parse_opt()
