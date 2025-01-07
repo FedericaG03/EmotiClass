@@ -1,14 +1,16 @@
+from tabnanny import verbose
+
 import nltk
 import re
 import matplotlib.pyplot as plt
 from nltk.corpus import stopwords
 nltk.download('stopwords', quiet=True)
 
-def normalizing(df, n_samples):
+def under_sampling(df, n_samples):
     print(df.head())
     print(f'Distribution of the classes before normalization: {df['status'].value_counts()}')
 
-    # Analysing elements' frequency in order to balance the dataset
+    # Analizzare la frequenza degli elementi per bilanciare il set di dati
     status_counts = df['status'].value_counts()
     most_frequent = status_counts.idxmax()
     least_frequent = status_counts.idxmin()
@@ -16,13 +18,10 @@ def normalizing(df, n_samples):
     print(f"Most frequent element: {most_frequent}")
     print(f"Least frequent element: {least_frequent}")
 
-    # Sottocampionamento
-    #balanced_dataset = df.groupby('status').apply(lambda x: x.sample(n_samples)).reset_index(drop=True)
     #Sottocampionamento controllato
     balanced_dataset = df.groupby('status').apply(
         lambda x: x.sample(n_samples) if len(x) >= n_samples else x
     ).reset_index(drop=True)
-
 
     print("Balanced distribution:")
     print(balanced_dataset['status'].value_counts())
@@ -40,28 +39,22 @@ def clean_text(statement, stopwords_flag = False):
 
     return statement
 
-'''
-def preprocess_data(df):
-    # Create the 'cleanText' colun
-    df['cleanText'] = df['statement'].apply(clean_text)
-    return df
-'''
-
 def remove_value_null(df, verbose, path):
     if verbose:
-        print('Valori mancanti in "statement":', df['statement'].isnull().sum())
+        print('Missing value in "statement":', df['statement'].isnull().sum())
         missing_by_status = df.groupby('status')['statement'].apply(lambda x: x.isnull().sum())
-        print("Valori mancanti per classe 'status':", missing_by_status)
+        print("Missing value for 'status':", missing_by_status)
 
-        # Grafico
+        # Creazione del Grafico
         plt.figure(figsize=(8, 5))
         missing_by_status.plot(kind='bar', color='blue')
-        plt.title("Valori Mancanti nella colonna 'statement' per Status")
-        plt.xlabel("Status")
-        plt.ylabel("Numero di Valori Mancanti")
+        plt.title("Distribuzione dei Valori Mancanti nella Colonna 'statement' in base allo Status")
+        plt.xlabel("Emozione")
+        plt.ylabel("Conteggio dei Valori Mancanti")
         plt.xticks(rotation=45, ha='right')
         plt.grid(axis='y', linestyle='--', alpha=0.7)
-        plt.savefig(path + "Valori nulli.png")
+        plt.tight_layout()
+        plt.savefig(path + "valori_mancanti_statement_per_status.png")
         plt.show()
 
     # Rimozione valori nulli
@@ -73,20 +66,22 @@ def preprocessing(df, verbose, n_samples, stopwords_flag, path):
         print("Info Dataset:")
         information(df, path)
 
-    print("Cleaning...")
+        print("Cleaning...")
     df = remove_value_null(df,verbose, path)
     if stopwords_flag:
-        # Funzione "wrapper" che prende il testo e il flag come argomenti
+        # Definizione di una funzione wrapper per integrare il flag nell'elaborazione del testo
         def clean_text_with_flag(text):
-            return clean_text(text, stopwords_flag)  # Passa stopwords_flag come True o False
+            return clean_text(text, stopwords_flag)  # Passa stopwords_flag come True
 
-        # Ora puoi usare clean_text_with_flag con .apply()
+        # Utilizzo della funzione wrapper per applicare la pulizia del testo alla colonna 'statement'
         df['cleanText'] = df['statement'].apply(clean_text_with_flag)
     else:
+        # Se il flag non è impostato, applica direttamente la funzione clean_text senza flag
+        # È utile per i casi in cui clean_text può gestire il default (senza stopwords)
         df['cleanText'] = df['statement'].apply(clean_text)
 
-    print("Normalizing...")
-    df = normalizing(df, n_samples)
+    print("Under_sampling...")
+    df = under_sampling(df, n_samples)
 
     return  df
 
@@ -98,11 +93,11 @@ def information(df, path):
     # Plot
     plt.figure(figsize=(8, 8))
     frequencies.plot(kind='bar', color='blue')
-    plt.title("Frequenza delle emozioni divisa per status")
+    plt.title("Distribuzione delle emozioni in base allo Status")
     plt.xlabel("Status")
-    plt.ylabel("Numero di Frequenza divisa")
+    plt.ylabel("Frequenza delle emozioni")
     plt.xticks(rotation=45, ha='right')
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     plt.tight_layout()
-    plt.savefig(path + "Frequenza delle emozioni divisa per classi.png")
+    plt.savefig(path + "frequenza_emozioni_per_status.png")
     plt.show()

@@ -3,7 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 def compute_metrics(y_pred, y_test, path):
-    """Evaluate the model and print the metrics."""
 
     predictions_df = pd.DataFrame({
         'True_Label': y_test,
@@ -11,8 +10,8 @@ def compute_metrics(y_pred, y_test, path):
     })
 
     accuracy = metrics.accuracy_score(y_test, y_pred)
-    '''average='macro':
-     Calculate metrics for each label, and find their unweighted mean. This does not take label imbalance into account.'''
+    # media='macro': Calcola le metriche separatamente per ciascuna etichetta e ne restituisce la media aritmetica.
+    # Questo metodo assegna lo stesso peso a tutte le etichette, ignorando eventuali squilibri nel numero di occorrenze tra le etichette.
     precision = metrics.precision_score(y_test, y_pred, average='macro')
     recall = metrics.recall_score(y_test, y_pred, average='macro')
     f1 = metrics.f1_score(y_test, y_pred, average='macro')
@@ -35,16 +34,18 @@ def compute_metrics(y_pred, y_test, path):
     counts = predictions_df['Correct'].value_counts()
 
     # Grafico a barre
+    plt.figure(figsize=(6, 5))
     plt.bar(['Previsioni Corrette', 'Previsioni Errate'], counts, color=['green', 'red'])
-    plt.title("Distribuzione Previsioni")
+    plt.title("Distribuzione delle Previsioni (Corrette vs Errate)")
     plt.ylabel("Numero di Previsioni")
-    plt.savefig(path + "Correct preds vs Wrong preds.png")
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.tight_layout()
+    plt.savefig(path + "corrette_vs_errate_previsioni.png")
     plt.show()
 
     #confusion matrix
     confusion_matrix = metrics.confusion_matrix(y_test, y_pred)
     cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=confusion_matrix)
-    #cm_display.plot(cmap = plt.cm.magma)
     cm_display.plot(cmap=plt.cm.Blues)
     plt.savefig(path + "ConfusionMatrix.png")
     plt.show()
