@@ -29,27 +29,31 @@ def predict_sentence(model, vec, enc, sentence = '', demo_mode = False):
 def predict_dataset(model, vec, enc, opt):
     # Carica il dataset
     df = pd.read_csv(opt.data_path)
-    df_preprocessed = preprocessing(df, opt.verbose, opt.n_samples, opt.stopwords_flag, opt.save_path)
+    df_preprocessed = preprocessing(df, opt.verbose , None, False, opt.data_path)
 
     x = df_preprocessed[['cleanText']]
 
     # Trasforma il testo in una rappresentazione numerica (matrice sparsa)
-    x_enc = vec.fit_transform(x['cleanText'].values.flatten())
+    x_enc = vec.transform(x['cleanText'].values.flatten())
 
-    y_pred = classify(model, x_enc, x, enc, opt.save_path)
-
+    y_pred = classify(model, x_enc, x, enc, opt.data_path)
+    print(y_pred)
     if opt.evaluate_mode:
         ## open file and compute metrics
-        file_path = opt.save_path + 'predictions.csv'
+        file_path = opt.data_path + 'predictions.csv'
 
         model_predictions = pd.read_csv(file_path)
+        print(model_predictions)
 
-        y_pred = model_predictions['status']
+        y_pred = model_predictions['status'].tolist()
+        y_pred = enc.fit_transform(y_pred)
 
-        labels = [0, 2, 3, 1, 4, 5]
+        labels = [0, 1, 2, 3, 4, 5]
+        print(f'lab {labels}, pred {y_pred}')
 
+        print('y_pred è:', type(y_pred))
         # Valutazione del modello
-        compute_metrics(y_pred, labels, opt.save_path)
+        compute_metrics(y_pred, labels, opt.data_path)
 
 
 def parse_opt():
@@ -58,6 +62,7 @@ def parse_opt():
     parser.add_argument("--model_path", type=str, default=r"experiments\exp_emotion_data_model_nayveMNB_test20%_n_samples3000\model/", help="path to load the model")
     parser.add_argument("-sentence", type=str,  help="The sentence to classify")
     parser.add_argument('-data_path', type=str, help='Path to data')
+    parser.add_argument("--verbose", action='store_true', help="verbose mode")
     parser.add_argument("-demo", action='store_true', help="Demo mode")
     parser.add_argument("--evaluate_mode", action='store_true', help="If labels are provided, evaluate model performance")
 

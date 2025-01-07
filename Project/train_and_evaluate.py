@@ -7,8 +7,6 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
 import os
 
-from torch.backends.mkl import verbose
-
 from utils.metrics import compute_metrics
 from utils.model_utils import save_model
 from utils.data_preprocessing import preprocessing
@@ -27,7 +25,6 @@ def train(x, y, opt):
 
     if opt.verbose:
         print(f"Shape of encoded matrix (x_encoded): {x_encoded.shape}")
-
 
     # Encoding dell'emozione
     emotion_encoder = LabelEncoder()
@@ -66,11 +63,9 @@ def classify(model, x_test, x = None, enc = None, save_path = None):
 
     if save_path:
         # Decodifica le etichette previste
-        status = enc.inverse_transform([y_pred])
-        predictions_df = pd.DataFrame({
-            'statement': x,
-            'status': status
-        })
+        status = enc.inverse_transform(y_pred)
+        x['status'] = status
+        predictions_df = x
         file_path = save_path + "predictions.csv"
         predictions_df.to_csv(file_path, index=False)
 

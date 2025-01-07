@@ -12,11 +12,13 @@ def under_sampling(df, n_samples):
 
     # Analizzare la frequenza degli elementi per bilanciare il set di dati
     status_counts = df['status'].value_counts()
-    most_frequent = status_counts.idxmax()
-    least_frequent = status_counts.idxmin()
 
-    print(f"Most frequent element: {most_frequent}")
-    print(f"Least frequent element: {least_frequent}")
+    if verbose:
+        most_frequent = status_counts.idxmax()
+        least_frequent = status_counts.idxmin()
+
+        print(f"Most frequent element: {most_frequent}")
+        print(f"Least frequent element: {least_frequent}")
 
     #Sottocampionamento controllato
     balanced_dataset = df.groupby('status').apply(
@@ -80,8 +82,9 @@ def preprocessing(df, verbose, n_samples, stopwords_flag, path):
         # È utile per i casi in cui clean_text può gestire il default (senza stopwords)
         df['cleanText'] = df['statement'].apply(clean_text)
 
-    print("Under_sampling...")
-    df = under_sampling(df, n_samples)
+    if n_samples:   ##Bilancia il dataset se viene fornito il numero di campioni
+        print("Under_sampling...")
+        df = under_sampling(df, n_samples)
 
     return  df
 

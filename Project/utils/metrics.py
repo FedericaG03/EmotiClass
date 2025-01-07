@@ -33,9 +33,13 @@ def compute_metrics(y_pred, y_test, path):
     predictions_df['Correct'] = predictions_df['True_Label'] == predictions_df['Predicted_Label']
     counts = predictions_df['Correct'].value_counts()
 
+    # Recupera il numero di previsioni corrette ed errate con default 0
+    correct_count = counts.get(True, 0)
+    incorrect_count = counts.get(False, 0)
+
     # Grafico a barre
     plt.figure(figsize=(6, 5))
-    plt.bar(['Previsioni Corrette', 'Previsioni Errate'], counts, color=['green', 'red'])
+    plt.bar(['Previsioni Corrette', 'Previsioni Errate'], [correct_count, incorrect_count], color=['green', 'red'])
     plt.title("Distribuzione delle Previsioni (Corrette vs Errate)")
     plt.ylabel("Numero di Previsioni")
     plt.grid(axis='y', linestyle='--', alpha=0.7)
