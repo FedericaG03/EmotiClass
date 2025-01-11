@@ -1,19 +1,20 @@
 import argparse
-
 import pandas as pd
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.preprocessing import LabelEncoder
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 import os
-
 from utils.metrics import compute_metrics
 from utils.model_utils import save_model
 from utils.data_preprocessing import preprocessing
 
 def train(x, y, opt):
     # Inizializza il CountVectorizer per trasformore il testo in una rappresentazione numerica
-    vectorizer = CountVectorizer()
+    if opt.vectorizer:
+        vectorizer = CountVectorizer()
+    elif opt.tfidf:
+        vectorizer = TfidfVectorizer()
 
     # Il CountVectorizer richiede una lista di stringhe come input.
     # x_encoded conterrà la matrice numerica (sparse) delle parole.
@@ -45,9 +46,19 @@ def train(x, y, opt):
         print("Dataset has been split into training and test sets.")
 
     ## Train
+    '''
     model = MultinomialNB()
     model.fit(x_train, y_train)
     print("Model trained with Multinomial Naive Bayes")
+    '''
+
+    param_grid = {'alpha': [0.1, 0.5, 1.0, 2.0]}
+    model = MultinomialNB()
+    grid_search = GridSearchCV(model, param_grid, cv=5) #5*4 training
+    grid_search.fit(x_train, y_train)
+    print(grid_search.best_params_)
+    model = grid_search.best_estimator_
+
 
     ## Salvataggio modello
     save_model(model, vectorizer, emotion_encoder,opt.save_path)
@@ -56,7 +67,6 @@ def train(x, y, opt):
     return model, x_test, y_test
 
 def classify(model, x_test, x = None, enc = None, save_path = None):
-    print('Dimension len x_test:', x_test.toarray().shape)
 
     # Esegui la previsione sul dataset di test
     y_pred = model.predict(x_test)
@@ -74,11 +84,12 @@ def classify(model, x_test, x = None, enc = None, save_path = None):
 def parse_opt():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--data", type=str, default=r"..\Project\data\emotionSentimentAnalysis.csv", help="path to the dataset")
-    parser.add_argument("--save_path", type=str, default=r"experiment_1/", help="path where to save model and results")
+    parser.add_argument("--data", type=str, default=r"..\Project\data\Emotion_sentiment_analysis.csv", help="path to the dataset")
+    parser.add_argument("--save_path", type=str, default=r"experiments/", help="path where to save model and results")
     parser.add_argument("--verbose", action='store_true', help="verbose mode")
     parser.add_argument("--stopwords_flag", action='store_true', help="If use stopwords removal")
-    parser.add_argument("--n_samples", type=int, default=3000, help="Number of samples for downsampling")
+    parser.add_argument("--n_samples", type=int, default=None, help="Number of samples for downsampling")
+    parser.add_argument("--vectorizer", type=str, default='count_vec', choices =['count_vec', 'tfidf_vec'], help="Number of samples for downsampling")
 
     return parser.parse_args()
 
