@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from nltk.corpus import stopwords
 nltk.download('stopwords', quiet=True)
 
-def under_sampling(df, n_samples):
+def under_sampling(df, n_samples, verbose):
     print(df.head())
     print(f'Distribution of the classes before normalization: {df['status'].value_counts()}')
 
@@ -24,9 +24,19 @@ def under_sampling(df, n_samples):
     balanced_dataset = df.groupby('status').apply(
         lambda x: x.sample(n_samples) if len(x) >= n_samples else x
     ).reset_index(drop=True)
+    if verbose:
+        print("Balanced distribution:")
+        print(balanced_dataset['status'].value_counts())
+        # Creiamo il grafico
+        plt.figure(figsize=(8, 6))
+        balanced_dataset['status'].value_counts().plot(kind='bar', color='blue')
+        plt.xticks(rotation=45, ha='right')
+        plt.grid(axis='y', linestyle='--', alpha=0.7)
+        plt.title('Distribuzione delle Classi nel Dataset Bilanciato')
+        plt.xlabel('Status')
+        plt.ylabel('Numero di campioni')
+        plt.show()
 
-    print("Balanced distribution:")
-    print(balanced_dataset['status'].value_counts())
 
     return balanced_dataset
 
@@ -38,7 +48,7 @@ def clean_text(statement, stopwords_flag = False):
     statement = re.sub(r'\s+', ' ', statement).strip()  # Gestisce spazi multipli
     statement = ' '.join(dict.fromkeys(statement.split()))  # Rimuove duplicati
     statement = re.sub(r'[^a-zA-Z0-9\s]', '', statement) #Rimuovere caratteri speciali
-
+    statement = re.sub(r'http\S+', '', statement) #Rimuovere link
     return statement
 
 def remove_value_null(df, verbose, path):
@@ -48,7 +58,7 @@ def remove_value_null(df, verbose, path):
         print("Missing value for 'status':", missing_by_status)
 
         # Creazione del Grafico
-        plt.figure(figsize=(8, 5))
+        plt.figure(figsize=(8, 6))
         missing_by_status.plot(kind='bar', color='blue')
         plt.title("Distribuzione dei Valori Mancanti nella Colonna 'statement' in base allo Status")
         plt.xlabel("Emozione")
@@ -84,7 +94,7 @@ def preprocessing(df, verbose, n_samples, stopwords_flag, path):
 
     if n_samples:   ##Bilancia il dataset se viene fornito il numero di campioni
         print("Under_sampling...")
-        df = under_sampling(df, n_samples)
+        df = under_sampling(df, n_samples, verbose)
 
     return  df
 
@@ -94,7 +104,7 @@ def information(df, path):
     print("Class frequencies:", frequencies)
 
     # Plot
-    plt.figure(figsize=(8, 8))
+    plt.figure(figsize=(8, 6))
     frequencies.plot(kind='bar', color='blue')
     plt.title("Distribuzione delle emozioni in base allo Status")
     plt.xlabel("Status")
